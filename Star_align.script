@@ -1,0 +1,92 @@
+info113% more star_aligner 
+#!/bin/bash                                                                                                                  
+#Mus genome built from chromosomes from Mus musculus GRCm38.p4 on ncbi
+#Mus transcripts from ftp://ftp.ensembl.org/pub/release-82/fasta/mus_musculus/cdna/Mus_musculus.GRCm38.cdna.all.fa.gz
+
+path_to_data="/1/scratch/nick/Bio720/RNAseq_exp/samples"
+path_to_ref="/1/scratch/nick/Bio720/RNAseq_exp"
+ref="chr.fa"
+ref_trans="mus_multifasta"
+gtf="mus.genome.gtf"
+index="mus_genome"
+
+
+#Build index of reference 
+#/usr/local/STAR_2.3.0/STAR --runMode genomeGenerate --genomeDir $path_to_ref/$ref --genomeFastaFiles $ref --runThreadN 8
+
+individuals="
+O1_LPS_LPS_GAGTGG_L001_R1_001.fastq.gz
+O1_LPS_LPS_GAGTGG_L002_R1_001.fastq.gz
+O1_LPS_x_CCGTCC_L001_R1_001.fastq.gz
+O1_LPS_x_CCGTCC_L002_R1_001.fastq.gz
+O1_VC_LPS_TAGCTT_L001_R1_001.fastq.gz
+O1_VC_LPS_TAGCTT_L002_R1_001.fastq.gz
+O1_VC_x_TGACCA_L001_R1_001.fastq.gz
+O1_VC_x_TGACCA_L002_R1_001.fastq.gz
+O2_LPS_LPS_ACTGAT_L001_R1_001.fastq.gz
+O2_LPS_LPS_ACTGAT_L002_R1_001.fastq.gz
+O2_LPS_x_GTCCGC_L001_R1_001.fastq.gz
+O2_LPS_x_GTCCGC_L002_R1_001.fastq.gz
+O2_VC_LPS_GGCTAC_L001_R1_001.fastq.gz
+O2_VC_LPS_GGCTAC_L002_R1_001.fastq.gz
+O2_VC_x_ACAGTG_L001_R1_001.fastq.gz
+O2_VC_x_ACAGTG_L002_R1_001.fastq.gz
+O3_LPS_LPS_ATTCCT_L001_R1_001.fastq.gz
+O3_LPS_LPS_ATTCCT_L002_R1_001.fastq.gz
+O3_LPS_x_GTGAAA_L001_R1_001.fastq.gz
+O3_LPS_x_GTGAAA_L002_R1_001.fastq.gz
+O3_VC_LPS_CTTGTA_L001_R1_001.fastq.gz
+O3_VC_LPS_CTTGTA_L002_R1_001.fastq.gz
+O3_VC_x_GCCAAT_L001_R1_001.fastq.gz
+O3_VC_x_GCCAAT_L002_R1_001.fastq.gz
+Y1_LPS_LPS_GTGGCC_L001_R1_001.fastq.gz
+Y1_LPS_LPS_GTGGCC_L002_R1_001.fastq.gz
+Y1_LPS_x_AGTCAA_L001_R1_001.fastq.gz
+Y1_LPS_x_AGTCAA_L002_R1_001.fastq.gz
+Y1_VC_LPS_CAGATC_L001_R1_001.fastq.gz
+Y1_VC_LPS_CAGATC_L002_R1_001.fastq.gz
+Y1_VC_x_ATCACG_L001_R1_001.fastq.gz
+Y1_VC_x_ATCACG_L002_R1_001.fastq.gz
+Y2_LPS_LPS_GTTTCG_L001_R1_001.fastq.gz
+Y2_LPS_LPS_GTTTCG_L002_R1_001.fastq.gz
+Y2_LPS_x_AGTTCC_L001_R1_001.fastq.gz
+Y2_LPS_x_AGTTCC_L002_R1_001.fastq.gz
+Y2_VC_LPS_ACTTGA_L001_R1_001.fastq.gz
+Y2_VC_LPS_ACTTGA_L002_R1_001.fastq.gz
+Y2_VC_x_CGATGT_L001_R1_001.fastq.gz
+Y2_VC_x_CGATGT_L002_R1_001.fastq.gz
+Y3_LPS_LPS_CGTACG_L001_R1_001.fastq.gz
+Y3_LPS_LPS_CGTACG_L002_R1_001.fastq.gz
+Y3_LPS_x_ATGTCA_L001_R1_001.fastq.gz
+Y3_LPS_x_ATGTCA_L002_R1_001.fastq.gz
+Y3_VC_LPS_GATCAG_L001_R1_001.fastq.gz
+Y3_VC_LPS_GATCAG_L002_R1_001.fastq.gz
+Y3_VC_x_TTAGGC_L001_R1_001.fastq.gz
+Y3_VC_x_TTAGGC_L002_R1_001.fastq.gz
+"
+
+for each_individual in $individuals
+do
+
+    echo ${each_individual}
+java -jar /usr/local/trimmomatic/trimmomatic-0.33.jar SE -threads 8 -phred33 -trimlog trim_log $path_to_data/${each_individual} $path_to_data/${each_individual}_trimmed ILLUMINACLIP:barcode:2:30:10 
+
+echo "Mapping reads"
+
+/usr/local/STAR_2.3.0/STAR --genomeDir $index --readFilesIn $path_to_data/${each_individual}_trimmed --outFileNamePrefix ${each_individual}_STAR_ --runThreadN 8 
+
+
+#Count the number of reads mapping to each feature using HTSeq
+
+echo "Running htseq"
+htseq-count --format=sam --stranded=no --order=pos ${each_individual}_STAR_Aligned.out.sam $path_to_ref/$gtf > ${each_individual}_htseq_counts.txt
+
+#Convert STAR alignment sam file into bam file for eXpress
+#samtools view -b -S ${each_individual}_STAR_Aligned.out.sam > ${each_individual}.bam
+
+echo "Moving files to directory"
+mkdir ${each_individual}_STAR.aln
+mv ${each_individual}_* ${each_individual}_STAR.aln
+mv ${each_individual}.bam ${each_individual}_STAR.aln
+
+done
