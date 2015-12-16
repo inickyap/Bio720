@@ -1,6 +1,8 @@
 library(DESeq2)
 library("RColorBrewer")
 library("gplots")
+library("pheatmap")
+library(gdata)
 
 setwd("~/Desktop/counts/data/")
 
@@ -56,6 +58,7 @@ summary(treatment_results_1_vs_4)
 treatment_results_1_vs_4_sorted <- treatment_results_1_vs_4[order(treatment_results_1_vs_4$padj),]
 
 write.csv(treatment_results_1_vs_4_sorted, file="treatment_diff_1_vs_4")
+write.csv(treatment_results_1_vs_4, file="treatment_names_1_vs_4")
 plotDispEsts(DESeq_data_1_4, xlab="Mean of Normalized Counts", ylab="Dispersion", main="Mean Dispersion")
 plotMA(treatment_results_1_vs_4, ylim=c(-10,10), main="LPS LPS vs vec vec")
 
@@ -72,7 +75,6 @@ write.csv(treatment_results_2_vs_4_sorted, file="treatment_diff_2_vs_4")
 plotDispEsts(DESeq_data_2_4, xlab="Mean of Normalized Counts", ylab="Dispersion", main="Mean Dispersion")
 plotMA(treatment_results_2_vs_4, ylim=c(-10,10), main="LPS vec vs vec vec")
 
-
 #vec_LPS vs vec_vec mice
 DESeq_data_3_4 <- DESeqDataSetFromMatrix(tot_count_matrix, experimental_design, design = formula(~treatment + age + treatment:age))
 DESeq_data_3_4$treatment <- relevel(DESeq_data_3_4$treatment, ref= "4")
@@ -86,3 +88,27 @@ write.csv(treatment_results_3_vs_4_sorted, file="treatment_diff_3_vs_4")
 plotDispEsts(DESeq_data_3_4, xlab="Mean of Normalized Counts", ylab="Dispersion", main="Mean Dispersion")
 plotMA(treatment_results_3_vs_4, ylim=c(-10,10), main="vec LPS vs vec vec")
 
+
+
+#Making a heatmap 
+
+id<-rownames(tot_count_matrix)
+
+logFC1<-treatment_results_1_vs_4$log2FoldChange
+padj1=treatment_results_1_vs_4$padj
+
+logFC2<-treatment_results_2_vs_4$log2FoldChange
+padj2=treatment_results_2_vs_4$padj
+
+logFC3<-treatment_results_3_vs_4$log2FoldChange
+padj3=treatment_results_3_vs_4$padj
+
+df<- data.frame(id,logFC1,padj1,logFC2,padj2,logFC3,padj3)
+df <- na.omit(df)
+
+dim(df)
+
+change_matrix<- as.matrix(df[,c(2,4,6)])
+colnames(change_matrix)<-c("treatment 1 vs 4" , "treatment 2 vs 4" , "treatment 3 vs 4")
+hmcols<- colorRampPalette(c("blue2","blue","white", "yellow","yellow2"))(256)
+heatmap.2(change_matrix, col=hmcols, scale="row", hclust=function(x) hclust(x, method='complete'), distfun=dist, trace="none", margin=c(17,15), density.info="none", labRow=NA)
