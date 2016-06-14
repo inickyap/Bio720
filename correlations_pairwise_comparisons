@@ -1,3 +1,8 @@
+#This script calculates the correlation coefficients pairwise for the 40 non-coevolving proteins 
+#correlation coefficients for MARCO-TLR2, MARCO-CD14, and TLR2-CD14 are calculated separately
+#plots correlation coefficients 
+
+
 library(MASS)
 library(pracma)
 library(ade4)
