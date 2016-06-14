@@ -1,0 +1,78 @@
+#This file calculates the rates of substitution for the 40 non coevolving proteins and MARCO, TLR2, and CD14 using the total branch lengths
+
+
+warnings()
+library(MASS)
+library(pracma)
+library(ade4)
+library(vegan)
+library(ape)
+
+n <- 43 #number of trees
+m <- 5 #number of tips
+
+nameData <- c("MARCO" , "TLR2" , "CD14", "Acet","Adren","Alb", "HBA2","Epid","Estro", "Ins" ,"CFTR", "Cad5", "cystat", "Creatine","PDIA3", 
+              "GRSP1", "HYP1", "ADPR4", "PFK", "Coll3" , "PTP" , "NOB1", "SRPRA" , "CALR" , "ACON" , "ADHY3" , "cyto" , "myo" , "FRS2",
+              "lamin" , "CLK3" , "RUVBL2" , "PWP1" , "HCFC1", "AT4B" , "CCK" , "NRAP" , "PA2G4" , "RRP12" , "TAS1" , "epoxide" , "STOM", "BEST") 
+
+tree_1<-read.tree("1_protein.tree")
+X<-cophenetic.phylo(tree_1)
+
+M<-m*(m-1)/2
+listX <- rep(0,M)
+edgeList <- rep(0,n)
+BootEdge <- edgeList
+
+res1<-rep(0,n*(n-1)/2)
+res <- data.frame(Protein1=character(),Protein2=character(), stringsAsFactors=FALSE)
+res2D <- matrix(0, n, n, dimnames = list(nameData, nameData)) 
+colnames(res) <- c("Protein1", "Protein2")
+
+treeDat <- matrix(0, n, M) 
+
+i<-1
+j<-1
+k<-1
+l<-1
+
+counter1<-1
+counter2<-1
+
+str <- "protein.tree"
+name <- str
+
+for(i in 1:n){
+  
+  name <- paste(i,str,sep ="_")
+  tree_1 <- read.tree(name)
+  plot(tree_1)
+  X <- cophenetic.phylo(tree_1)
+  print(X)
+  
+  counter2 <- 1
+  
+  for(k in 1:(m-1)){
+    for(l in (k+1):m){
+      listX[counter2]<-X[k,l]
+      counter2<-counter2+1
+    }    
+  }
+  
+  treeDat[i,1:M]=listX
+}
+
+
+branchlength <-rowSums(treeDat)
+branchlength2 <- sort(branchlength, decreasing=TRUE)
+namepos<-match(branchlength,branchlength2)
+quan<-quantile(branchlength, 0.95)
+avg<- mean(branchlength2)
+
+mydata = data.frame(Protein_Name=(nameData[namepos]), Branch_length=(branchlength2))
+
+plot(mydata$Branch_length, ann=FALSE, labels=FALSE)
+abline(h=avg)
+axis(1, at=1:n, labels=mydata$Protein_Name, las=2, cex.lab=4.5)
+axis(2, at=1:7, labels=1:7, las=0, cex.lab=2.5)
+title(xlab="Protein Name", line =4, cex.lab=1.5)
+title(ylab="Sum of Branch Lengths", cex.lab=1.5)
