@@ -1,5 +1,5 @@
 #Pipeline for trimming reads and aligning to mus transcriptome 
-#Prepared for DESeq2 analysis 
+#Prepared for DESeq2 analysis using script "differential_expression.R"
 
 
 #!/bin/bash                                                                                                                  
