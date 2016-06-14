@@ -1,0 +1,89 @@
+library(MASS)
+library(pracma)
+library(ade4)
+library(vegan)
+library(ape)
+
+#MARTLR= 440
+#MARCD= 639
+#TLRCD= 999
+
+#con <- file("shuffle.log")
+#sink(con, append=TRUE)
+
+z<-1
+
+set.seed(94)
+while (z < 1000){
+
+n <- 40 #number of trees
+m <- 5 #number of tips
+
+nameData <- c("Acet","Adren","Alb", "Hemo","Epid","Estro", "Ins" ,"CFTR", "Cad5", "cystat", "Creatine","PDIA3", 
+              "GRSP1", "HYP1", "adpr4", "PFK", "Coll3" , "PTP" , "NOB1", "SRPRA" , "CALR" , "ACON" , "ADHY3" , "cyto" , "myo" , "FRS2",
+              "lamin" , "CLK3" , "ruvb2" , "PWP1" , "HCFC1", "AT4B" , "CCK" , "NRAP" , "PA2G4" , "RRP12" , "TAS1" , "epoxide" , "STOM", "BEST") 
+
+
+res1 <- rep(0,n*(n-1)/2)
+res <- data.frame(Protein1=character(),Protein2=character(), stringsAsFactors=FALSE)
+res2D <- matrix(0, n, n, dimnames = list(nameData, nameData)) 
+colnames(res) <- c("Protein1", "Protein2")
+
+p <- 1
+j <- 1
+k <- 1
+l <- 1
+
+counter1 <- 1
+counter2 <- 1
+
+str <- "protein.tree"
+name <- str
+
+tree_1 <- read.tree("4_protein.tree")
+X <- cophenetic.phylo(tree_1)
+
+tree_2 <- read.tree("5_protein.tree")
+Y <- cophenetic.phylo(tree_2)
+
+N <- sqrt(length(X))
+
+martlr <- 0.8970579
+marcd <- 0.9293291
+tlrcd<- 0.9881606
+
+  i<- sample(4:n,(n-4), replace= F)
+#print(i)
+
+while (p < (n-4)/2){
+  name <- paste(i[j],str,sep ="_")
+  tree_1 <- read.tree(name)
+  X <- cophenetic.phylo(tree_1)
+
+  name <- paste(i[j+1],str,sep ="_")
+  tree_2 <- read.tree(name)
+  Y <- cophenetic.phylo(tree_2)
+    
+  corr <- cor(X[upper.tri(X)],Y[upper.tri(Y)])
+    
+  res[counter1,1] <- nameData[i[j]]
+  res[counter1,2] <- nameData[i[j+1]]
+  res[counter1,3] <- corr
+  res2D[i[j+1],i] <- corr
+  res2D[i,i[j+1]] <- corr
+  counter1 <- counter1+1
+  j<-j+2
+  p<-p+1
+}
+#print(res)
+quan <-res[,3]
+mean(quan)
+quan <- append(quan,tlrcd)
+t<-sort(quan, decreasing= TRUE)
+#print(t)
+y<-match(tlrcd,t)
+if (y < 5){
+print (TRUE)
+}
+z<-z+1
+}
