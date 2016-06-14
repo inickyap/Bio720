@@ -4,7 +4,7 @@ library("gplots")
 library("pheatmap")
 library(gdata)
 
-setwd("~/Desktop/counts/data/")
+setwd("data/")
 
 #Importing data
 in_dir = dir(, pattern= "_htseq_counts.txt" )
@@ -58,9 +58,11 @@ summary(treatment_results_1_vs_4)
 treatment_results_1_vs_4_sorted <- treatment_results_1_vs_4[order(treatment_results_1_vs_4$padj),]
 
 write.csv(treatment_results_1_vs_4_sorted, file="treatment_diff_1_vs_4")
-write.csv(treatment_results_1_vs_4, file="treatment_names_1_vs_4")
 plotDispEsts(DESeq_data_1_4, xlab="Mean of Normalized Counts", ylab="Dispersion", main="Mean Dispersion")
 plotMA(treatment_results_1_vs_4, ylim=c(-10,10), main="LPS LPS vs vec vec")
+
+pca_analysis <- rlog(DESeq_data_1_4, blind=TRUE) 
+plotPCA(pca_analysis, intgroup=c("age")) 
 
 #LPS_vec vs vec_vec mice
 DESeq_data_2_4 <- DESeqDataSetFromMatrix(tot_count_matrix, experimental_design, design = formula(~treatment + age + treatment:age))
