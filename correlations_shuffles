@@ -1,3 +1,8 @@
+#This script randomly shuffles the 40 non-coevolving proteins and makes 20 new pairs
+#Correlation coefficients for these new pairs are calculated and ranked
+#The correlation coefficients for MARCO-TLR2, MARCO-CD14, and MARCO-TLR2 are kept constant and excluded from the pairs and are added into the ranking
+#Performs 1000 shuffles
+
 library(MASS)
 library(pracma)
 library(ade4)
@@ -81,6 +86,8 @@ mean(quan)
 quan <- append(quan,tlrcd)
 t<-sort(quan, decreasing= TRUE)
 #print(t)
+
+#change this line to whichever comparison
 y<-match(tlrcd,t)
 if (y < 5){
 print (TRUE)
