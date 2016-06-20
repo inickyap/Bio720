@@ -222,3 +222,20 @@ mean(res3[2,3]<res[,3]) #TLR2 + CD14
 #0.0.03543124
 mean(res3[3,3]<res[,3]) #CD14 + MARCO
 #0.0.004662005
+
+t<- res[,3] > 0.9 
+  
+which(t==TRUE)
+
+y <- res[c(t),]
+
+f<- res[,3] < 0.00000000000 
+
+which(t==FALSE)
+
+z <- res[c(f),]
+
+
+write.table(y, file = "correlations_90")
+write.table(z, file = "correlations0")
+
